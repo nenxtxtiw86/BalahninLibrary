@@ -1,0 +1,64 @@
+﻿<Window x:Class="BalahninLibrary.AddLibraryItemWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Добавление экземпляра" Height="550" Width="400"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Название:" Margin="0,5"/>
+        <TextBox Grid.Row="1" x:Name="TbTitle" Height="25" Margin="0,0,0,10"/>
+
+        <TextBlock Grid.Row="2" Text="Автор:" Margin="0,5"/>
+        <TextBox Grid.Row="3" x:Name="TbAuthor" Height="25" Margin="0,0,0,10"/>
+
+        <TextBlock Grid.Row="4" Text="Издательство:" Margin="0,5"/>
+        <TextBox Grid.Row="5" x:Name="TbPublisher" Height="25" Margin="0,0,0,10"/>
+
+        <TextBlock Grid.Row="6" Text="Год публикации (ГГГГ):" Margin="0,5"/>
+        <TextBox Grid.Row="7" x:Name="TbPublicationYear" Height="25" Margin="0,0,0,10" Text="2024"/>
+
+        <TextBlock Grid.Row="8" Text="Базовый инв. номер (например, INV-100):" Margin="0,5"/>
+        <TextBox Grid.Row="9" x:Name="TbInventory" Height="25" Margin="0,0,0,10"/>
+
+        <Grid Grid.Row="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Margin="0,0,5,10">
+                <TextBlock Text="Кол-во копий:" Margin="0,5"/>
+                <TextBox x:Name="TbCopiesCount" Height="25" Text="1"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Margin="5,0,0,10">
+                <TextBlock Text="Тип литературы:" Margin="0,5"/>
+                <ComboBox x:Name="TypeComboBox" Height="25" DisplayMemberPath="TypeName"/>
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Grid.Row="11" Text="Фонд:" Margin="0,5"/>
+        <ComboBox Grid.Row="12" x:Name="FundComboBox" Height="25" Margin="0,0,0,15" DisplayMemberPath="FundName"/>
+
+        <StackPanel Grid.Row="13" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <Button Content="Сохранить" Width="100" Height="30" Margin="0,0,10,0" Click="Save_Click"/>
+            <Button Content="Отмена" Width="100" Height="30" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

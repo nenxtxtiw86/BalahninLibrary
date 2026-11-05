@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="796ce4894a774b5897e0208450f1afe2" Name="Diagram1">
+        <EntityTypeShape EntityType="LibraryBalahninModel.ArchiveLibraryItem" Width="1.5" PointX="3" PointY="5.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="LibraryBalahninModel.Employees" Width="1.5" PointX="0.75" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="LibraryBalahninModel.Library" Width="1.5" PointX="1.5" PointY="14.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="LibraryBalahninModel.LibraryFund" Width="1.5" PointX="0.75" PointY="17.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="LibraryBalahninModel.LibraryItem" Width="1.5" PointX="6" PointY="5.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="LibraryBalahninModel.LiteratureType" Width="1.5" PointX="0.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="LibraryBalahninModel.Replenishment" Width="1.5" PointX="3" PointY="1" IsExpanded="true" />
+        <AssociationConnector Association="LibraryBalahninModel.FK_Archive_Employee" ManuallyRouted="false" />
+        <AssociationConnector Association="LibraryBalahninModel.FK_Archive_Fund" ManuallyRouted="false" />
+        <AssociationConnector Association="LibraryBalahninModel.FK_Archive_Type" ManuallyRouted="false" />
+        <AssociationConnector Association="LibraryBalahninModel.FK_Employees_Library" ManuallyRouted="false" />
+        <AssociationConnector Association="LibraryBalahninModel.FK_LibraryItem_Employee" ManuallyRouted="false" />
+        <AssociationConnector Association="LibraryBalahninModel.FK_Replenishment_Employee" ManuallyRouted="false" />
+        <AssociationConnector Association="LibraryBalahninModel.FK_LibraryFund_Library" ManuallyRouted="false" />
+        <AssociationConnector Association="LibraryBalahninModel.FK_LibraryItem_Fund" ManuallyRouted="false" />
+        <AssociationConnector Association="LibraryBalahninModel.FK_Replenishment_Fund" ManuallyRouted="false" />
+        <AssociationConnector Association="LibraryBalahninModel.FK_LibraryItem_Repl" ManuallyRouted="false" />
+        <AssociationConnector Association="LibraryBalahninModel.FK_LibraryItem_Type" ManuallyRouted="false" />
+        <AssociationConnector Association="LibraryBalahninModel.FK_Replenishment_Type" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
