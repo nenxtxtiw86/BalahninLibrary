@@ -15,11 +15,11 @@ namespace BalahninLibrary
     
     public partial class LibraryBalahninEntities : DbContext
     {
-        private static LibraryBalahninEntities _context;
+        public static LibraryBalahninEntities _context;
         public static LibraryBalahninEntities GetContext()
         {
-            if(_context == null)
-               _context = new LibraryBalahninEntities();
+            if( _context == null )
+                _context = new LibraryBalahninEntities();
             return _context;
         }
         public LibraryBalahninEntities()

@@ -21,6 +21,7 @@ namespace BalahninLibrary
             this.LibraryItem = new HashSet<LibraryItem>();
             this.Replenishment = new HashSet<Replenishment>();
         }
+    
         public int EmployeeID { get; set; }
         public string Surname { get; set; }
         public string FirstName { get; set; }
@@ -35,7 +36,6 @@ namespace BalahninLibrary
         public string Phone { get; set; }
         public string Password { get; set; }
         public string FIO => Surname + " " + FirstName + " " + Patronymic;
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ArchiveLibraryItem> ArchiveLibraryItem { get; set; }
         public virtual Library Library { get; set; }

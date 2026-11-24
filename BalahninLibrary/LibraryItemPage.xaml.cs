@@ -176,58 +176,64 @@ namespace BalahninLibrary
                     return;
                 }
 
-                var result = MessageBox.Show($"Вы уверены, что хотите списать в архив книгу:\n'{selectedItem.Title}' (Инв. №{selectedItem.InventoryNumber})?",
-                                             "Подтверждение списания", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                // Сначала — окно выбора причины
+                var reasonWindow = new ArchiveReasonWindow();
+                if (reasonWindow.ShowDialog() != true)
+                    return;  // пользователь отменил
 
-                if (result == MessageBoxResult.Yes)
+                string reason = reasonWindow.SelectedReason;
+
+                try
                 {
-                    try
+                    var context = LibraryBalahninEntities.GetContext();
+                    var itemToArchive = context.LibraryItem.FirstOrDefault(i => i.ItemID == selectedItem.ItemID);
+
+                    if (itemToArchive != null)
                     {
-                        var context = LibraryBalahninEntities.GetContext();
+                        // 2. Статус
+                        itemToArchive.Status = "В архиве";
 
-                        // 1. Находим книгу в БД (так как selectedItem - это объект из прошлого запроса)
-                        var itemToArchive = context.LibraryItem.FirstOrDefault(i => i.ItemID == selectedItem.ItemID);
-
-                        if (itemToArchive != null)
+                        // 3. Копия в архив
+                        var archiveItem = new ArchiveLibraryItem
                         {
-                            // 2. Меняем статус на "В архиве"
-                            itemToArchive.Status = "В архиве";
+                            ItemID = itemToArchive.ItemID,
+                            FundID = itemToArchive.FundID,
+                            LiteratureTypeID = itemToArchive.LiteratureTypeID,
+                            ReplenishmentID = itemToArchive.ReplenishmentID,
+                            Title = itemToArchive.Title,
+                            Author = itemToArchive.Author,
+                            InventoryNumber = itemToArchive.InventoryNumber,
+                            AddedDate = itemToArchive.AddedDate,
+                            ArchivedDate = DateTime.Now,
+                            Reason = reason,  // ← из окна
+                            ArchivedBy = Manager.CurrentEmployee?.EmployeeID
+                        };
+                        context.ArchiveLibraryItem.Add(archiveItem);
 
-                            // 3. Копируем в таблицу архива
-                            var archiveItem = new ArchiveLibraryItem
+                        // 4. Счётчик по типу литературы
+                        var fund = context.LibraryFund.FirstOrDefault(f => f.FundID == itemToArchive.FundID);
+                        if (fund != null)
+                        {
+                            switch (itemToArchive.LiteratureTypeID)
                             {
-                                ItemID = itemToArchive.ItemID,
-                                FundID = itemToArchive.FundID,
-                                LiteratureTypeID = itemToArchive.LiteratureTypeID,
-                                ReplenishmentID = itemToArchive.ReplenishmentID,
-                                Title = itemToArchive.Title,
-                                Author = itemToArchive.Author,
-                                InventoryNumber = itemToArchive.InventoryNumber,
-                                AddedDate = itemToArchive.AddedDate,
-                                ArchivedDate = DateTime.Now,
-                                Reason = "Списание по решению сотрудника",
-                                ArchivedBy = 1 // ID сотрудника
-                            };
-                            context.ArchiveLibraryItem.Add(archiveItem);
-
-                            // 4. Уменьшаем счетчик в фонде
-                            var fund = context.LibraryFund.FirstOrDefault(f => f.FundID == itemToArchive.FundID);
-                            if (fund != null && fund.BookCount > 0)
-                            {
-                                fund.BookCount--;
+                                case 1: if (fund.BookCount > 0) fund.BookCount--; break;
+                                case 2: if (fund.JournalCount > 0) fund.JournalCount--; break;
+                                case 3: if (fund.NewspaperCount > 0) fund.NewspaperCount--; break;
+                                case 4: if (fund.CollectionCount > 0) fund.CollectionCount--; break;
+                                case 5: if (fund.DissertationCount > 0) fund.DissertationCount--; break;
+                                case 6: if (fund.AbstractCount > 0) fund.AbstractCount--; break;
                             }
-
-                            context.SaveChanges();
-
-                            // Обновляем таблицу
-                            LibraryUpdate();
-                            MessageBox.Show("Экземпляр успешно списан в архив, счетчики обновлены.");
                         }
+
+                        context.SaveChanges();
+
+                        LibraryUpdate();
+                        MessageBox.Show($"Экземпляр списан в архив.\nПричина: {reason}");
                     }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Ошибка при списании: " + ex.Message);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Ошибка при списании: " + ex.Message);
                 }
             }
             else

@@ -10,5 +10,7 @@ namespace BalahninLibrary
     internal class Manager
     {
         public static Frame MainFrame { get; set; }
+        public static Employees CurrentEmployee { get; set; }
+
     }
 }

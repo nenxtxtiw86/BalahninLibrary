@@ -1,14 +1,20 @@
 ﻿<Page x:Class="BalahninLibrary.LibraryFundPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:BalahninLibrary"
-      mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="LibraryFundPage">
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      d:DesignWidth="1500"
+      d:DesignHeight="800"
+      Title="LibraryFundPage"
+      FontFamily="Calibri"
+      FontSize="15"
+      Background="{StaticResource BgMain}">
 
-    <Grid>
+    <Grid Margin="20,20,20,0"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch">
+
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -16,62 +22,131 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Панель поиска и фильтра -->
-        <WrapPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button x:Name="BackButton" Content="← Назад" Width="80" Height="25" 
-                    Margin="0,0,15,0" Click="BackButton_Click"/>
-            <TextBlock Text="Поиск:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-            <TextBox x:Name="SearchTextBox" Width="240" Margin="0,0,20,0"
-                     TextChanged="SearchTextBox_TextChanged"
-                     ToolTip="Поиск по названию фонда или библиотеки"/>
+        <!-- Панель поиска -->
+        <Border Grid.Row="0"
+                Background="{StaticResource BgSecondary}"
+                Padding="15"
+                BorderThickness="0">
 
-            <TextBlock Text="Библиотека:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-            <ComboBox x:Name="LibraryComboBox" Width="280"
-                      SelectionChanged="LibraryComboBox_SelectionChanged">
-                <ComboBoxItem Content="Все библиотеки"/>
-            </ComboBox>
-        </WrapPanel>
+            <WrapPanel Orientation="Horizontal">
+
+                <Button x:Name="BackButton"
+                        Content="Назад"
+                        Width="120"
+                        Style="{StaticResource AccentButton}"
+                        Margin="0,0,20,0"
+                        Click="BackButton_Click"/>
+
+                <TextBlock Text="Поиск:"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0"/>
+
+                <TextBox x:Name="SearchTextBox"
+                         Width="280"
+                         Margin="0,0,25,0"
+                         TextChanged="SearchTextBox_TextChanged"/>
+
+                <TextBlock Text="Библиотека:"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0"/>
+
+                <ComboBox x:Name="LibraryComboBox"
+                          Width="320"
+                          SelectionChanged="LibraryComboBox_SelectionChanged">
+
+                    <ComboBoxItem Content="Все библиотеки"/>
+
+                </ComboBox>
+            </WrapPanel>
+        </Border>
 
         <!-- Кнопка обновления -->
-        <Button Grid.Row="1" Content="Обновить" Width="120"
-                HorizontalAlignment="Left" Margin="0,0,0,8"
+        <Button Grid.Row="1"
+                Content="Обновить"
+                Width="140"
+                Style="{StaticResource AccentButton}"
+                HorizontalAlignment="Left"
+                Margin="0,15,0,15"
                 Click="Refresh_Click"/>
 
         <!-- Таблица фондов -->
-        <ListView Grid.Row="2" x:Name="ListViewFunds"
+        <ListView Grid.Row="2"
+                  x:Name="ListViewFunds"
                   SelectionMode="Single"
+                  BorderThickness="0"
+                  Background="Transparent"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
                   GridViewColumnHeader.Click="GridViewColumnHeader_Click">
+
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="ID" Width="50"
+
+                    <GridView.ColumnHeaderContainerStyle>
+                        <Style TargetType="GridViewColumnHeader">
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="FontSize" Value="15"/>
+                            <Setter Property="Padding" Value="10,8"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                        </Style>
+                    </GridView.ColumnHeaderContainerStyle>
+
+                    <GridViewColumn Header="ID"
+                                    Width="60"
                                     DisplayMemberBinding="{Binding FundID}"/>
-                    <GridViewColumn Header="Фонд" Width="200"
+
+                    <GridViewColumn Header="Фонд"
+                                    Width="220"
                                     DisplayMemberBinding="{Binding FundName}"/>
-                    <GridViewColumn Header="Библиотека" Width="240"
+
+                    <GridViewColumn Header="Библиотека"
+                                    Width="260"
                                     DisplayMemberBinding="{Binding Library.Name}"/>
-                    <GridViewColumn Header="Книги" Width="80"
+
+                    <GridViewColumn Header="Книги"
+                                    Width="90"
                                     DisplayMemberBinding="{Binding BookCount}"/>
-                    <GridViewColumn Header="Журналы" Width="80"
+
+                    <GridViewColumn Header="Журналы"
+                                    Width="90"
                                     DisplayMemberBinding="{Binding JournalCount}"/>
-                    <GridViewColumn Header="Газеты" Width="80"
+
+                    <GridViewColumn Header="Газеты"
+                                    Width="90"
                                     DisplayMemberBinding="{Binding NewspaperCount}"/>
-                    <GridViewColumn Header="Сборники" Width="80"
+
+                    <GridViewColumn Header="Сборники"
+                                    Width="90"
                                     DisplayMemberBinding="{Binding CollectionCount}"/>
-                    <GridViewColumn Header="Диссертации" Width="100"
+
+                    <GridViewColumn Header="Диссертации"
+                                    Width="110"
                                     DisplayMemberBinding="{Binding DissertationCount}"/>
-                    <GridViewColumn Header="Рефераты" Width="80"
+
+                    <GridViewColumn Header="Рефераты"
+                                    Width="90"
                                     DisplayMemberBinding="{Binding AbstractCount}"/>
-                    <GridViewColumn Header="Всего" Width="90"
+
+                    <GridViewColumn Header="Всего"
+                                    Width="100"
                                     DisplayMemberBinding="{Binding TotalCount}"/>
+
                 </GridView>
             </ListView.View>
         </ListView>
 
-        <!-- Итоговая строка -->
-        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="0,1,0,0"
-                Margin="0,8,0,0" Padding="0,6,0,0">
+        <!-- Итоговая информация -->
+        <Border Grid.Row="3"
+                Background="{StaticResource BgSecondary}"
+                BorderThickness="0"
+                Margin="0,15,0,0"
+                Padding="15,12">
+
             <TextBlock x:Name="SummaryTextBlock"
                        FontWeight="Bold"
+                       Foreground="{StaticResource Accent}"
                        TextWrapping="Wrap"/>
         </Border>
 

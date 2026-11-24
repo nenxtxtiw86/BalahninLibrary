@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="Хранилище LibraryBalahninModel" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="Хранилище LibraryBalahninModel" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="ArchiveLibraryItem">
           <Key>
             <PropertyRef Name="ArchiveID" />
@@ -73,10 +73,10 @@
           <Property Name="ReplenishmentID" Type="int" />
           <Property Name="Title" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="Author" Type="nvarchar" MaxLength="200" />
-          <Property Name="InventoryNumber" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="AddedDate" Type="date" Nullable="false" />
           <Property Name="Status" Type="nvarchar" MaxLength="20" Nullable="false" />
           <Property Name="AddedBy" Type="int" />
+          <Property Name="InventoryNumber" Type="nvarchar" MaxLength="9" StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="LiteratureType">
           <Key>
@@ -300,8 +300,7 @@
             <End Role="Replenishment" EntitySet="Replenishment" />
           </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="LibraryBalahninModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -386,7 +385,7 @@
           <Property Name="ReplenishmentID" Type="Int32" />
           <Property Name="Title" Type="String" MaxLength="300" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="Author" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
-          <Property Name="InventoryNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="InventoryNumber" Type="String" MaxLength="9" FixedLength="false" Unicode="true" />
           <Property Name="AddedDate" Type="DateTime" Nullable="false" Precision="0" />
           <Property Name="Status" Type="String" MaxLength="20" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="AddedBy" Type="Int32" />

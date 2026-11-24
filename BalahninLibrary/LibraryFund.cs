@@ -32,9 +32,8 @@ namespace BalahninLibrary
         public int DissertationCount { get; set; }
         public int AbstractCount { get; set; }
         public int TotalCount =>
-           BookCount + JournalCount + NewspaperCount
-           + CollectionCount + DissertationCount + AbstractCount;
-
+              BookCount + JournalCount + NewspaperCount
+              + CollectionCount + DissertationCount + AbstractCount;
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ArchiveLibraryItem> ArchiveLibraryItem { get; set; }
         public virtual Library Library { get; set; }

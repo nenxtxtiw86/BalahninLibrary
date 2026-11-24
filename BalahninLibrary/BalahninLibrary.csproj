@@ -70,6 +70,12 @@
     <Compile Include="ArchiveLibraryItem.cs">
       <DependentUpon>BalahninModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="ArchivePage.xaml.cs">
+      <DependentUpon>ArchivePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ArchiveReasonWindow.xaml.cs">
+      <DependentUpon>ArchiveReasonWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="BalahninModel.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -93,10 +99,21 @@
     <Compile Include="LiteratureType.cs">
       <DependentUpon>BalahninModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="LoginWindow.xaml.cs">
+      <DependentUpon>LoginWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Replenishment.cs">
       <DependentUpon>BalahninModel.tt</DependentUpon>
     </Compile>
     <Page Include="AddLibraryItemWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ArchivePage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ArchiveReasonWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -105,6 +122,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="LibraryItemPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="LoginWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

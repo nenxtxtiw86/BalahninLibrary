@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace BalahninLibrary
 {
@@ -17,30 +17,37 @@ namespace BalahninLibrary
         {
             var context = LibraryBalahninEntities.GetContext();
 
-            // Загружаем типы литературы
             TypeComboBox.ItemsSource = context.LiteratureType.ToList();
             TypeComboBox.SelectedIndex = 0;
 
-            // Загружаем фонды
             FundComboBox.ItemsSource = context.LibraryFund.ToList();
             FundComboBox.SelectedIndex = 0;
         }
 
+        // Показ/скрытие полей в зависимости от типа литературы
+        private void TypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (TypeComboBox.SelectedItem is LiteratureType selectedType)
+            {
+                string typeName = selectedType.TypeName;
+
+                // Периодика (журнал, газета) — автор обычно не указывается
+                bool isPeriodical = (typeName == "Журнал" || typeName == "Газета");
+                AuthorPanel.Visibility = isPeriodical ? Visibility.Collapsed : Visibility.Visible;
+
+                // Газета, диссертация, реферат — издательство не указывается
+                bool hidePublisher = (typeName == "Газета"
+                                   || typeName == "Диссертация"
+                                   || typeName == "Реферат");
+                PublisherPanel.Visibility = hidePublisher ? Visibility.Collapsed : Visibility.Visible;
+            }
+        }
+
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            // Валидация
-            // 1. Проверка на пустоту
-            if (string.IsNullOrWhiteSpace(TbTitle.Text) || string.IsNullOrWhiteSpace(TbInventory.Text))
+            if (string.IsNullOrWhiteSpace(TbTitle.Text))
             {
-                MessageBox.Show("Заполните название и базовый инвентарный номер!", "Ошибка");
-                return;
-            }
-
-            // 2. Проверка формата инвентарного номера (должен начинаться с INV- и содержать цифры)
-            string invPattern = @"^INV-\d+$";
-            if (!Regex.IsMatch(TbInventory.Text.Trim(), invPattern, RegexOptions.IgnoreCase))
-            {
-                MessageBox.Show("Инвентарный номер должен быть в формате: INV-000 (латинские буквы INV, дефис и цифры).", "Ошибка ввода");
+                MessageBox.Show("Заполните название!", "Ошибка");
                 return;
             }
 
@@ -50,17 +57,25 @@ namespace BalahninLibrary
                 return;
             }
 
-            // Парсим количество копий
             if (!int.TryParse(TbCopiesCount.Text, out int copiesCount) || copiesCount < 1)
             {
                 MessageBox.Show("Введите корректное количество копий (1 или больше)!", "Ошибка");
                 return;
             }
 
-            // Парсим год публикации
             if (!int.TryParse(TbPublicationYear.Text, out int pubYear) || pubYear < 1500 || pubYear > DateTime.Now.Year)
             {
                 MessageBox.Show("Введите корректный год публикации!", "Ошибка");
+                return;
+            }
+
+            var selectedType = (LiteratureType)TypeComboBox.SelectedItem;
+
+            // Если поле «Автор» скрыто — не требуем его заполнения
+            bool authorVisible = AuthorPanel.Visibility == Visibility.Visible;
+            if (authorVisible && string.IsNullOrWhiteSpace(TbAuthor.Text))
+            {
+                MessageBox.Show("Заполните автора!", "Ошибка");
                 return;
             }
 
@@ -68,54 +83,51 @@ namespace BalahninLibrary
             {
                 var context = LibraryBalahninEntities.GetContext();
                 var selectedFund = (LibraryFund)FundComboBox.SelectedItem;
-                var selectedType = (LiteratureType)TypeComboBox.SelectedItem;
-                string baseInventory = TbInventory.Text.Trim();
 
-                // 1. СОЗДАЕМ ПАРТИЮ (Replenishment)
+                string publisherValue = (PublisherPanel.Visibility == Visibility.Visible
+                                         && !string.IsNullOrWhiteSpace(TbPublisher.Text))
+                    ? TbPublisher.Text.Trim()
+                    : "Не указано";
+
+                // Берем ID текущего пользователя из менеджера
+                int currentEmployeeId = Manager.CurrentEmployee.EmployeeID;
+
+                // 1. Партия
                 var newReplenishment = new Replenishment
                 {
                     FundID = selectedFund.FundID,
-                    EmployeeID = 1, // TODO: Заменить на ID текущего сотрудника
+                    EmployeeID = currentEmployeeId, // <--- ИСПРАВЛЕНО ТУТ
                     LiteratureTypeID = selectedType.LiteratureTypeID,
                     ReplenishmentDate = DateTime.Now,
                     SourceName = TbTitle.Text,
-                    Publisher = TbPublisher.Text,
-                    PublicationDate = new DateTime(pubYear, 1, 1), // 1 января указанного года
-                    CopiesCount = copiesCount // Указываем реальное количество!
+                    Publisher = publisherValue,
+                    PublicationDate = new DateTime(pubYear, 1, 1),
+                    CopiesCount = copiesCount
                 };
                 context.Replenishment.Add(newReplenishment);
-                context.SaveChanges(); // Сохраняем, чтобы получить ReplenishmentID
+                context.SaveChanges();
 
-                // 2. СОЗДАЕМ N ЭКЗЕМПЛЯРОВ (LibraryItem)
+                // 2. Экземпляры — БЕЗ InventoryNumber (вычисляемый столбец)
                 for (int i = 0; i < copiesCount; i++)
                 {
-                    // Генерируем инвентарный номер (если базовый INV-100, то будут INV-100, INV-101...)
-                    // Если в конце есть цифры, увеличиваем их. Если нет — добавляем.
-                    string currentInventoryNumber = GenerateInventoryNumber(baseInventory, i);
-
-                    // Проверка на дубликат
-                    if (context.LibraryItem.Any(item => item.InventoryNumber == currentInventoryNumber))
-                    {
-                        MessageBox.Show($"Инвентарный номер {currentInventoryNumber} уже существует в базе! Измените базовый номер.", "Ошибка");
-                        return; // Прерываем сохранение
-                    }
-
                     var newItem = new LibraryItem
                     {
                         FundID = selectedFund.FundID,
                         LiteratureTypeID = selectedType.LiteratureTypeID,
                         ReplenishmentID = newReplenishment.ReplenishmentID,
                         Title = TbTitle.Text,
-                        Author = TbAuthor.Text,
-                        InventoryNumber = currentInventoryNumber,
+                        Author = (AuthorPanel.Visibility == Visibility.Visible
+                                  && !string.IsNullOrWhiteSpace(TbAuthor.Text))
+                            ? TbAuthor.Text.Trim()
+                            : null,
                         AddedDate = DateTime.Now,
                         Status = "Активен",
-                        AddedBy = 1
+                        AddedBy = currentEmployeeId // <--- ИСПРАВЛЕНО ТУТ
                     };
                     context.LibraryItem.Add(newItem);
                 }
 
-                // 3. УВЕЛИЧИВАЕМ СЧЕТЧИК В ФОНДЕ НА КОЛИЧЕСТВО КОПИЙ
+                // 3. Счётчики
                 switch (selectedType.LiteratureTypeID)
                 {
                     case 1: selectedFund.BookCount += copiesCount; break;
@@ -133,35 +145,6 @@ namespace BalahninLibrary
             catch (Exception ex)
             {
                 MessageBox.Show("Ошибка при добавлении: " + ex.Message);
-            }
-        }
-
-        // Вспомогательный метод для генерации номеров
-        private string GenerateInventoryNumber(string baseNumber, int offset)
-        {
-            if (offset == 0) return baseNumber; // Первый экземпляр получает ровно то, что ввели
-
-            // Ищем цифры в конце строки (например, INV-100 -> 100)
-            int digitIndex = baseNumber.Length - 1;
-            while (digitIndex >= 0 && char.IsDigit(baseNumber[digitIndex]))
-            {
-                digitIndex--;
-            }
-
-            if (digitIndex < baseNumber.Length - 1)
-            {
-                // Если цифры есть, отделяем их
-                string prefix = baseNumber.Substring(0, digitIndex + 1);
-                string numberPart = baseNumber.Substring(digitIndex + 1);
-                int number = int.Parse(numberPart) + offset;
-
-                // Сохраняем ведущие нули (если было 005, станет 006)
-                return prefix + number.ToString(new string('0', numberPart.Length));
-            }
-            else
-            {
-                // Если цифр нет, просто добавляем дефис и индекс
-                return $"{baseNumber}-{offset + 1}";
             }
         }
     }
