@@ -1,41 +1,118 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace BalahninLibrary
 {
-    /// <summary>
-    /// Логика взаимодействия для LibraryItemPage.xaml
-    /// </summary>
     public partial class LibraryItemPage : Page
     {
+        private bool _isDirector = false;
+
         public LibraryItemPage()
         {
             InitializeComponent();
-            var _current = LibraryBalahninEntities.GetContext().LibraryItem.ToList();
-            ListViewLibrary.ItemsSource = _current;
+
+            if (Manager.CurrentEmployee != null)
+            {
+                _isDirector = Manager.CurrentEmployee.Position == "Директор" || Manager.CurrentEmployee.Position == "Администратор";
+            }
+
+            // Если это НЕ директор, прячем выбор библиотек
+            if (!_isDirector)
+            {
+                LibraryFilterPanel.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                LoadLibraries();
+            }
+
+            LoadFundsFilter(); // Первичная загрузка фондов
             StatusComboBox.SelectedIndex = 0;
-            FundComboBox.SelectedIndex = 0;
             LibraryUpdate();
+        }
+
+        // 1. Загрузка списка библиотек (только для директора)
+        private void LoadLibraries()
+        {
+            var context = LibraryBalahninEntities.GetContext();
+            var libraries = context.Library.OrderBy(l => l.Name).ToList();
+
+            LibraryComboBox.Items.Clear();
+            LibraryComboBox.Items.Add(new ComboBoxItem { Content = "Все библиотеки" });
+
+            foreach (var lib in libraries)
+            {
+                LibraryComboBox.Items.Add(new ComboBoxItem { Content = lib.Name, Tag = lib.LibraryID });
+            }
+
+            LibraryComboBox.SelectedIndex = 0;
+        }
+
+        // 2. Загрузка списка фондов (зависит от выбранной библиотеки)
+        private void LoadFundsFilter()
+        {
+            var context = LibraryBalahninEntities.GetContext();
+            var fundsQuery = context.LibraryFund.AsQueryable();
+
+            if (_isDirector)
+            {
+                // Если директор выбрал конкретную библиотеку — фильтруем фонды по ней
+                if (LibraryComboBox.SelectedIndex > 0 && LibraryComboBox.SelectedItem is ComboBoxItem selectedLib && selectedLib.Tag is int libId)
+                {
+                    fundsQuery = fundsQuery.Where(f => f.LibraryID == libId);
+                }
+            }
+            else if (Manager.CurrentEmployee != null)
+            {
+                // Если обычный сотрудник — только фонды его библиотеки
+                int currentLibraryId = Manager.CurrentEmployee.LibraryID;
+                fundsQuery = fundsQuery.Where(f => f.LibraryID == currentLibraryId);
+            }
+
+            var funds = fundsQuery.Select(f => f.FundName).Distinct().ToList();
+
+            FundComboBox.Items.Clear();
+            FundComboBox.Items.Add(new ComboBoxItem { Content = "Все фонды" });
+
+            foreach (var fundName in funds)
+            {
+                FundComboBox.Items.Add(new ComboBoxItem { Content = fundName });
+            }
+
+            FundComboBox.SelectedIndex = 0;
+        }
+
+        private void LibraryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            LoadFundsFilter(); // Меняем список фондов
+            LibraryUpdate();   // И сразу фильтруем книги
         }
 
         private void LibraryUpdate()
         {
-            var _current = LibraryBalahninEntities.GetContext().LibraryItem.ToList();
+            var context = LibraryBalahninEntities.GetContext();
+            var query = context.LibraryItem.AsQueryable();
 
+            // Фильтр по библиотеке
+            if (_isDirector)
+            {
+                if (LibraryComboBox.SelectedIndex > 0 && LibraryComboBox.SelectedItem is ComboBoxItem selectedLib && selectedLib.Tag is int libId)
+                {
+                    query = query.Where(p => p.LibraryFund.LibraryID == libId);
+                }
+            }
+            else if (Manager.CurrentEmployee != null)
+            {
+                int currentLibraryId = Manager.CurrentEmployee.LibraryID;
+                query = query.Where(p => p.LibraryFund.LibraryID == currentLibraryId);
+            }
+
+            var _current = query.ToList();
+
+            // Поиск
             string searchText = SearchTextBox.Text.Trim().ToLower();
-
             if (!string.IsNullOrEmpty(searchText))
             {
                 _current = _current.Where(p =>
@@ -44,142 +121,56 @@ namespace BalahninLibrary
                     || (p.InventoryNumber != null && p.InventoryNumber.ToLower().Contains(searchText))
                     || (p.Status != null && p.Status.ToLower().Contains(searchText))
                     || (p.Employees != null && p.Employees.FIO != null && p.Employees.FIO.ToLower().Contains(searchText))
-                    || (p.LibraryFund != null && p.LibraryFund.FundName != null && p.LibraryFund.FundName.ToLower().Contains(searchText))
                 ).ToList();
             }
 
-
+            // Фильтр по статусу
             if (StatusComboBox.SelectedIndex == 1)
-            {
                 _current = _current.Where(p => p.Status == "Активен").ToList();
-            }
-            else if(StatusComboBox.SelectedIndex == 2)
-            {
+            else if (StatusComboBox.SelectedIndex == 2)
                 _current = _current.Where(p => p.Status == "В архиве").ToList();
-            }
-            if (FundComboBox.SelectedIndex == 1)
+
+            // Фильтр по фонду
+            if (FundComboBox.SelectedIndex > 0)
             {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Основной фонд").ToList();
+                string fundName = (FundComboBox.SelectedItem as ComboBoxItem)?.Content.ToString();
+                if (!string.IsNullOrEmpty(fundName) && fundName != "Все фонды")
+                {
+                    _current = _current.Where(p => p.LibraryFund.FundName == fundName).ToList();
+                }
             }
-            else if (FundComboBox.SelectedIndex == 2)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Редкий фонд").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 3)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Учебный фонд").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 4)
-            {
-                _current = _current.Where(p =>p.LibraryFund.FundName == "Периодика").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 5)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Детский фонд").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 6)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Научный фонд").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 7)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Краеведческий фонд").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 8)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Фонд периодических изданий").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 9)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Художественный фонд").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 10)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Фонд редких книг").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 11)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Справочный фонд").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 12)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Фонд диссертаций").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 13)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Фонд рефератов").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 14)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Учебно-методический фонд").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 15)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Фонд аудиокниг").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 16)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Медиатека").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 17)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Фонд периодики").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 18)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Молодёжный фонд").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 19)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Досуговый фонд").ToList();
-            }
-            else if (FundComboBox.SelectedIndex == 20)
-            {
-                _current = _current.Where(p => p.LibraryFund.FundName == "Фонд нотных изданий").ToList();
-            }
+
             ListViewLibrary.ItemsSource = _current;
-        }
-        private void StatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            LibraryUpdate();
+            CountTextBlock.Text = $"Найдено записей: {_current.Count}";
         }
 
-        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            LibraryUpdate();
-        }
+        private void StatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => LibraryUpdate();
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e) => LibraryUpdate();
+        private void FundComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => LibraryUpdate();
 
-        private void FundComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            LibraryUpdate();
-        }
         private void Add_Click(object sender, RoutedEventArgs e)
         {
             var addWindow = new AddLibraryItemWindow();
             if (addWindow.ShowDialog() == true)
             {
-                // После добавления обновляем список
                 LibraryUpdate();
                 MessageBox.Show("Книга успешно добавлена!");
             }
         }
 
+        // ... Delete_Click оставляем без изменений ...
         private void Delete_Click(object sender, RoutedEventArgs e)
         {
-            // Проверяем, выбрана ли какая-то книга в списке
             if (ListViewLibrary.SelectedItem is LibraryItem selectedItem)
             {
-                // Проверяем, не в архиве ли она уже
                 if (selectedItem.Status == "В архиве")
                 {
                     MessageBox.Show("Этот экземпляр уже находится в архиве.");
                     return;
                 }
 
-                // Сначала — окно выбора причины
                 var reasonWindow = new ArchiveReasonWindow();
-                if (reasonWindow.ShowDialog() != true)
-                    return;  // пользователь отменил
+                if (reasonWindow.ShowDialog() != true) return;
 
                 string reason = reasonWindow.SelectedReason;
 
@@ -190,10 +181,8 @@ namespace BalahninLibrary
 
                     if (itemToArchive != null)
                     {
-                        // 2. Статус
                         itemToArchive.Status = "В архиве";
 
-                        // 3. Копия в архив
                         var archiveItem = new ArchiveLibraryItem
                         {
                             ItemID = itemToArchive.ItemID,
@@ -205,12 +194,11 @@ namespace BalahninLibrary
                             InventoryNumber = itemToArchive.InventoryNumber,
                             AddedDate = itemToArchive.AddedDate,
                             ArchivedDate = DateTime.Now,
-                            Reason = reason,  // ← из окна
+                            Reason = reason,
                             ArchivedBy = Manager.CurrentEmployee?.EmployeeID
                         };
                         context.ArchiveLibraryItem.Add(archiveItem);
 
-                        // 4. Счётчик по типу литературы
                         var fund = context.LibraryFund.FirstOrDefault(f => f.FundID == itemToArchive.FundID);
                         if (fund != null)
                         {
@@ -226,7 +214,6 @@ namespace BalahninLibrary
                         }
 
                         context.SaveChanges();
-
                         LibraryUpdate();
                         MessageBox.Show($"Экземпляр списан в архив.\nПричина: {reason}");
                     }

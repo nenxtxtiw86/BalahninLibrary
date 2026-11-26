@@ -8,9 +8,19 @@ namespace BalahninLibrary
 {
     public partial class ArchivePage : Page
     {
+        // Флаг, чтобы не проверять роль каждый раз
+        private bool _isDirector = false;
+
         public ArchivePage()
         {
             InitializeComponent();
+
+            // Проверяем роль текущего пользователя
+            if (Manager.CurrentEmployee != null)
+            {
+                _isDirector = Manager.CurrentEmployee.Position == "Директор" || Manager.CurrentEmployee.Position == "Администратор";
+            }
+
             LoadArchive();
         }
 
@@ -24,6 +34,13 @@ namespace BalahninLibrary
         {
             var context = LibraryBalahninEntities.GetContext();
             var query = context.ArchiveLibraryItem.AsQueryable();
+
+            // ГЛАВНАЯ ФИЛЬТРАЦИЯ: Если это НЕ директор, показываем только его библиотеку
+            if (!_isDirector && Manager.CurrentEmployee != null)
+            {
+                int currentLibraryId = Manager.CurrentEmployee.LibraryID;
+                query = query.Where(a => a.LibraryFund.LibraryID == currentLibraryId);
+            }
 
             // 1. Фильтр по тексту
             string search = SearchTextBox.Text.Trim().ToLower();

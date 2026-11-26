@@ -17,11 +17,53 @@ namespace BalahninLibrary
         {
             var context = LibraryBalahninEntities.GetContext();
 
+            // 1. Типы литературы
             TypeComboBox.ItemsSource = context.LiteratureType.ToList();
             TypeComboBox.SelectedIndex = 0;
 
-            FundComboBox.ItemsSource = context.LibraryFund.ToList();
-            FundComboBox.SelectedIndex = 0;
+            // Проверяем роль
+            bool isDirector = Manager.CurrentEmployee != null &&
+                              (Manager.CurrentEmployee.Position == "Директор" ||
+                               Manager.CurrentEmployee.Position == "Администратор");
+
+            if (isDirector)
+            {
+                // Если директор — показываем ComboBox с библиотеками
+                LibraryPanel.Visibility = Visibility.Visible;
+                LibraryComboBox.ItemsSource = context.Library.OrderBy(l => l.Name).ToList();
+                LibraryComboBox.SelectedIndex = 0;
+
+                // Загружаем фонды для первой библиотеки
+                LoadFundsByLibrary();
+            }
+            else
+            {
+                // Если обычный сотрудник — прячем выбор библиотеки и показываем только его фонды
+                LibraryPanel.Visibility = Visibility.Collapsed;
+
+                int currentLibraryId = Manager.CurrentEmployee.LibraryID;
+                var funds = context.LibraryFund.Where(f => f.LibraryID == currentLibraryId).ToList();
+                FundComboBox.ItemsSource = funds;
+                FundComboBox.SelectedIndex = 0;
+            }
+        }
+
+        // Обработчик смены библиотеки у директора
+        private void LibraryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            LoadFundsByLibrary();
+        }
+
+        // Метод для загрузки фондов по выбранной библиотеке
+        private void LoadFundsByLibrary()
+        {
+            if (LibraryComboBox.SelectedItem is Library selectedLibrary)
+            {
+                var context = LibraryBalahninEntities.GetContext();
+                var funds = context.LibraryFund.Where(f => f.LibraryID == selectedLibrary.LibraryID).ToList();
+                FundComboBox.ItemsSource = funds;
+                FundComboBox.SelectedIndex = 0;
+            }
         }
 
         // Показ/скрытие полей в зависимости от типа литературы

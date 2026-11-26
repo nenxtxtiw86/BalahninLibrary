@@ -11,10 +11,7 @@
       FontSize="15"
       Background="{StaticResource BgMain}">
 
-    <Grid Margin="20,20,20,0"
-          HorizontalAlignment="Stretch"
-          VerticalAlignment="Stretch">
-
+    <Grid Margin="20,20,20,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -28,45 +25,31 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
+                <!-- Все фильтры в одну строку -->
                 <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="SearchTextBox" Width="300" Margin="0,0,15,0" TextChanged="SearchTextBox_TextChanged"/>
-                    <ComboBox Name="StatusComboBox" Width="180" Margin="0,0,15,0" SelectionChanged="StatusComboBox_SelectionChanged">
+                    <!-- ФИЛЬТР ПО БИБЛИОТЕКАМ (виден только директору) -->
+                    <StackPanel x:Name="LibraryFilterPanel" Orientation="Horizontal" Margin="0,0,15,0">
+                        <ComboBox Name="LibraryComboBox" Width="220" SelectionChanged="LibraryComboBox_SelectionChanged"/>
+                    </StackPanel>
+
+                    <TextBox x:Name="SearchTextBox" Width="250" Margin="0,0,15,0" TextChanged="SearchTextBox_TextChanged"/>
+
+                    <ComboBox Name="StatusComboBox" Width="160" Margin="0,0,15,0" SelectionChanged="StatusComboBox_SelectionChanged">
                         <ComboBoxItem>Все статусы</ComboBoxItem>
                         <ComboBoxItem>Активен</ComboBoxItem>
                         <ComboBoxItem>В архиве</ComboBoxItem>
                     </ComboBox>
-                    <ComboBox Name="FundComboBox" Width="280" SelectionChanged="FundComboBox_SelectionChanged">
-                        <ComboBoxItem>Все фонды</ComboBoxItem>
-                        <ComboBoxItem>Основной фонд</ComboBoxItem>
-                        <ComboBoxItem>Редкий фонд</ComboBoxItem>
-                        <ComboBoxItem>Учебный фонд</ComboBoxItem>
-                        <ComboBoxItem>Периодика</ComboBoxItem>
-                        <ComboBoxItem>Детский фонд</ComboBoxItem>
-                        <ComboBoxItem>Научный фонд</ComboBoxItem>
-                        <ComboBoxItem>Краеведческий фонд</ComboBoxItem>
-                        <ComboBoxItem>Фонд периодических изданий</ComboBoxItem>
-                        <ComboBoxItem>Художественный фонд</ComboBoxItem>
-                        <ComboBoxItem>Фонд редких книг</ComboBoxItem>
-                        <ComboBoxItem>Справочный фонд</ComboBoxItem>
-                        <ComboBoxItem>Фонд диссертаций</ComboBoxItem>
-                        <ComboBoxItem>Фонд рефератов</ComboBoxItem>
-                        <ComboBoxItem>Учебно-методический фонд</ComboBoxItem>
-                        <ComboBoxItem>Фонд аудиокниг</ComboBoxItem>
-                        <ComboBoxItem>Медиатека</ComboBoxItem>
-                        <ComboBoxItem>Фонд периодики</ComboBoxItem>
-                        <ComboBoxItem>Молодёжный фонд</ComboBoxItem>
-                        <ComboBoxItem>Досуговый фонд</ComboBoxItem>
-                        <ComboBoxItem>Фонд нотных изданий</ComboBoxItem>
-                    </ComboBox>
+
+                    <ComboBox Name="FundComboBox" Width="220" SelectionChanged="FundComboBox_SelectionChanged"/>
                 </StackPanel>
 
                 <!-- Кнопки управления -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <!-- Сделали кнопки белыми, чтобы они выделялись на синем фоне -->
-                <Button Content="Добавить" Width="140" Style="{StaticResource AccentButton}"  Foreground="{StaticResource Accent}" Margin="0,0,15,0" Click="Add_Click"/>
-                <Button Content="В архив" Width="140" Style="{StaticResource AccentButton}"  Foreground="{StaticResource Accent}" Click="Delete_Click"/>
+                    <Button Content="Добавить" Width="140" Style="{StaticResource AccentButton}" Margin="0,0,15,0" Click="Add_Click"/>
+                    <Button Content="В архив" Width="140" Style="{StaticResource AccentButton}" Click="Delete_Click"/>
                 </StackPanel>
             </Grid>
+
 
         <!-- Список литературы -->
         <ListView Name="ListViewLibrary"
@@ -76,7 +59,7 @@
                   Background="Transparent"
                   HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" d:ItemsSource="{d:SampleData ItemCount=5}">
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
@@ -105,7 +88,7 @@
                         <!-- Основной контент -->
                         <StackPanel Grid.Column="1" Orientation="Vertical">
 
-                            <!-- Название + Инв. номер в одной строке (чтобы номер подтягивался к названию, если нет автора) -->
+                            <!-- Название + Инв. номер -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                                 <TextBlock Text="{Binding Title}"
                                            FontSize="20"
